@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Newtonsoft;
 
 namespace ATOOL
 {
@@ -74,10 +75,6 @@ namespace ATOOL
                     deepFirstSearchTree(node, val);
                 }
             }
-        }
-
-
-
-        
+        }     
     }
 }

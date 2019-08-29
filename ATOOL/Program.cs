@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Newtonsoft;
+using Newtonsoft.Json;
 
 namespace ATOOL
 {
@@ -8,7 +10,7 @@ namespace ATOOL
     {
             public class FakeNode : IComparable
             {
-                int ii =0;
+                public int ii =0;
                 public string str = null;
 
             int IComparable.CompareTo(object obj)
@@ -42,7 +44,7 @@ namespace ATOOL
                 }
             }
 
-            var set = new HashSet<FakeNode>();
+/*             var set = new HashSet<FakeNode>();
             var v1 = new FakeNode {str = "1Hellow Stringgggggggggggg!!!!!!!"};
             var v2 = new FakeNode {str = "2Hellow Stringgggggggggggg!!!!!!!"};
             var v3 = new FakeNode {str = "3Hellow Stringgggggggggggg!!!!!!!"};
@@ -66,7 +68,12 @@ namespace ATOOL
             Console.WriteLine("\n\n\n");
             Console.WriteLine(str11);
             Console.WriteLine(str22);
-            Console.WriteLine(v1.str);
+            Console.WriteLine(v1.str); */
+
+            var fn = new FakeNode(){str = "Hellow JSON!!!", ii = 567};
+
+            string json = JsonConvert.SerializeObject(fn, Formatting.Indented);
+            Console.WriteLine(json);
         }
     }
 }
