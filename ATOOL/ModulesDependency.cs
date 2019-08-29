@@ -6,17 +6,9 @@ namespace ATOOL
 {
     public class ModulesDependency
     {
-        private FileStream parentFunctionStream = null;
-        private FileStream childeFunctionStream = null;
-        private StreamReader modulesIDsStream = null;
-        private IList<Node> grapsh = null;
-
         public IDictionary<string,Node> DependencyTable {get;private set;}
 
-        public ModulesDependency(string parrentFileName, string childFileName, string ModulesIDsFileName){
-            parentFunctionStream = File.Create(parrentFileName);
-            childeFunctionStream = File.Create(childFileName);
-            modulesIDsStream = new StreamReader(ModulesIDsFileName);
+        public ModulesDependency(){
             DependencyTable = new Dictionary<string,Node>();
         }
 
