@@ -82,19 +82,33 @@ namespace ATOOL
             }
         }
 
-        public IList<int> GetTouchedModules(string functionName){
+        public ISet<int> GetTouchedModules(string functionName){
+            foreach(var node in functionDependency.Values){
+                node.State = 0;
+            }
+            return getTouchedModules(functionName);
+        }
+
+        ISet<int> getTouchedModules(string functionName){
             Node node;
             if(functionDependency.TryGetValue(functionName, out node)){
                 if(node.ModuleID is null) return null;
-                var list = new List<int>(64){(int)node.ModuleID};
+                var set = new HashSet<int>();
+                if(node.State != 0) return set;
+                node.State = 1;
+                set.Add((int)node.ModuleID);
                 foreach(var val in node.Relatives){
-                    var sublist = GetTouchedModules(val.FunctionName);
-                    if(sublist is null) return null;
-                    list.AddRange(sublist);
+                    var subset = getTouchedModules(val.FunctionName);
+                    if(subset != null) set.UnionWith(subset);
+                    else return null;
                 }
-                return list;
+                return set;
             }
             return null;
+        }
+
+        void clearStateOfNodes(){
+
         }
 
         private void deepFirstSearchTree(Node parentNode, Node node){
