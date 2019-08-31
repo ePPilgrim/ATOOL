@@ -1,64 +1,100 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Newtonsoft;
+using System.Linq;
+using Newtonsoft.Json;
 
 namespace ATOOL
 {
     public class ModulesDependency
     {
-        public IDictionary<string,Node> DependencyTable {get;private set;}
+        private readonly string functionListFileName = "func_list";
+        private readonly string functionRelations = "func_relation.json";
+        private IDictionary<string,Node> functionDependency;
+        private ISet<string> functionNames;
 
-        public ModulesDependency(){
-            DependencyTable = new Dictionary<string,Node>();
-        }
-
-        public class Node{
-           public string FunctionName;
-           public int? ModuleID = null;
-           public int State = 0;
-           public ICollection<Node> Relatives; 
-
-           public Node(string functionName, ICollection<Node> relatives){
-               FunctionName = functionName;
-               Relatives = relatives;
-           }
-        }
-
-        public void SetRelationFromFile(string parrentFileName, string childFileName, string ModulesIDsFileName){
+        public void SetRelation(string parrentFileName, string childFileName, string ModulesIDsFileName){
+            getUniqueFunctionNames(parrentFileName);
+            functionDependency = new Dictionary<string,Node>();
             using(var parentFunctionStream = new StreamReader(parrentFileName))
             using(var childeFunctionStream = new StreamReader(childFileName))
-            using(var modulesIDsStream = File.Create(ModulesIDsFileName)){
-               string parentFunc = null;
-               string childFunc = null;
-               byte[] bytes = {0,0,0,0};
+            using(var modulesIDsStream = new StreamReader(ModulesIDsFileName)){
+               string parentFunc, childFunc, moduleIDStr;
                while((parentFunc = parentFunctionStream.ReadLine()) != null
                     && (childFunc = childeFunctionStream.ReadLine()) != null
-                    && modulesIDsStream.Read(bytes,0,bytes.Length) != 0){
-                        var modulID = BitConverter.ToInt32(bytes,0);
-                        Node parentNode, childeNode = null;
-                        if(DependencyTable.TryGetValue(parentFunc, out parentNode)){
-                            if(DependencyTable.TryGetValue(childFunc,out childeNode)){
-                                if(!parentNode.Relatives.Contains(childeNode)){
-                                    parentNode.Relatives.Add(childeNode);
-                                }
-                            }
-                            else{
-                                childeNode = new Node(childFunc, new HashSet<Node>());
-                                parentNode.Relatives.Add(childeNode);
-                                DependencyTable.Add(childFunc,childeNode);
-                            } 
-                        } else{
-                                DependencyTable.Add(parentFunc,new Node(parentFunc, new HashSet<Node>()));
+                    && (moduleIDStr = modulesIDsStream.ReadLine()) != null){
+                        Node parentNode, childNode;
+                        if(!functionDependency.TryGetValue(parentFunc, out parentNode)){
+                            parentNode = new Node(parentFunc, new HashSet<Node>());
+                            functionDependency.Add(parentFunc, parentNode);
                         }
-                        parentNode.ModuleID = modulID;
+                        parentNode.ModuleID = Convert.ToInt32(moduleIDStr);
+                        
+                        if(functionNames.Contains(childFunc)){
+                            if(!functionDependency.TryGetValue(childFunc, out childNode)){
+                                childNode = new Node(childFunc, new HashSet<Node>());
+                                functionDependency.Add(childFunc, childNode);
+                            }
+                            if(!parentNode.Relatives.Contains(childNode)){
+                                parentNode.Relatives.Add(childNode);
+                            }
+                        }
                     }
             }
-            foreach(var node in DependencyTable.Values){
+            foreach(var node in functionDependency.Values){
                 if(node.State == 0){
                     deepFirstSearchTree(null,node);
                 }
             }
+            saveInJsonFormat();
+        }
+
+        public void SetRelation(){
+            var serializer = new JsonSerializer();
+            IList<JsonNode> jsonFunDependency; 
+            using(var funcRelationStream = new StreamReader(functionRelations)){
+                jsonFunDependency = (List<JsonNode>) serializer.Deserialize(funcRelationStream,typeof(List<JsonNode>));
+            }
+
+            functionDependency = new Dictionary<string,Node>();
+            Node parentNode, childNode;      
+            foreach(var val in jsonFunDependency){
+                if(!functionDependency.TryGetValue(val.FunctionName, out parentNode)){
+                    parentNode = new Node(val.FunctionName, new List<Node>(val.Relatives.Count));
+                    functionDependency.Add(val.FunctionName,parentNode);
+                }
+                parentNode.ModuleID = val.ModuleID;
+                foreach(var childFunName in val.Relatives){
+                    if(!functionDependency.TryGetValue(childFunName, out childNode)){
+                        childNode = new Node(childFunName, new List<Node>(32));
+                        functionDependency.Add(childFunName,childNode);
+                    } 
+                    parentNode.Relatives.Add(childNode);
+                }
+
+            }
+
+            functionNames = new HashSet<string>(functionDependency.Keys);
+            using(var uniqueFuncNameStream = new StreamWriter(functionListFileName)){
+                foreach(var val in functionNames){
+                    uniqueFuncNameStream.WriteLine(val);
+                }
+            }
+        }
+
+        public IList<int> GetTouchedModules(string functionName){
+            Node node;
+            if(functionDependency.TryGetValue(functionName, out node)){
+                if(node.ModuleID is null) return null;
+                var list = new List<int>(64){(int)node.ModuleID};
+                foreach(var val in node.Relatives){
+                    var sublist = GetTouchedModules(val.FunctionName);
+                    if(sublist is null) return null;
+                    list.AddRange(sublist);
+                }
+                return list;
+            }
+            return null;
         }
 
         private void deepFirstSearchTree(Node parentNode, Node node){
@@ -75,6 +111,53 @@ namespace ATOOL
                     deepFirstSearchTree(node, val);
                 }
             }
-        }     
+        } 
+        private void getUniqueFunctionNames(string funcNameFileName){
+            using(var funcNameStream = new StreamReader(funcNameFileName)){
+                string funName;
+                functionNames = new HashSet<string>();
+                while((funName = funcNameStream.ReadLine()) != null){
+                    functionNames.Add(funName);
+                }
+            }
+
+            using(var uniqueFuncNameStream = new StreamWriter(functionListFileName)){
+                foreach(var val in functionNames){
+                    uniqueFuncNameStream.WriteLine(val);
+                }
+            }
+        }
+
+        private void saveInJsonFormat(){
+            var serializer = new JsonSerializer();
+            using(var funcRelationStream = new StreamWriter(functionRelations)){
+                serializer.Serialize(funcRelationStream, functionDependency.Select(
+                x => new JsonNode{
+                    FunctionName = x.Value.FunctionName,
+                    ModuleID = x.Value.ModuleID,
+                    Relatives = x.Value.Relatives.Select(y=>y.FunctionName).ToList()
+                }
+                ).ToList());
+            } 
+        }
+
+        private class Node{
+           public string FunctionName;
+           public int? ModuleID = null;
+           public int State = 0;
+           public ICollection<Node> Relatives; 
+
+           public Node(string functionName, ICollection<Node> relatives){
+               FunctionName = functionName;
+               Relatives = relatives;
+           }
+        }
+
+        private class JsonNode{
+            public string FunctionName;
+            public int? ModuleID;
+            public IList<string> Relatives;
+        }
+    
     }
 }
