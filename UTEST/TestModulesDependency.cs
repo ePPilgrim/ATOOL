@@ -8,9 +8,10 @@ namespace UTEST
     [TestClass]
     public class TestModulesDependency
     {
-        string functionNames = "funNames.txt";
-        string functRefNames = "funRefNames.txt";
-        string moduleIDs = "moduleIDs.txt";
+        string functionNamesFileName = "funNames.txt";
+        string functRefNamesFileName = "funRefNames.txt";
+        string moduleIDsFileName = "moduleIDs.txt";
+        string funcRelationsFileName = "funcRelations.json";
 
         [TestMethod]
         public void CreateFunctionDependencyFromScratchTest1()
@@ -43,9 +44,9 @@ namespace UTEST
                 "32"
             };
 
-            using(var funcNameStream = new StreamWriter(functionNames))
-            using(var funcRefNameStream = new StreamWriter(functRefNames))
-            using(var moduleIDStream = new StreamWriter(moduleIDs)){
+            using(var funcNameStream = new StreamWriter(functionNamesFileName))
+            using(var funcRefNameStream = new StreamWriter(functRefNamesFileName))
+            using(var moduleIDStream = new StreamWriter(moduleIDsFileName)){
                 for(int i = 0; i < inputFuncNameList.Count; ++ i){
                     funcNameStream.WriteLine(inputFuncNameList[i]);
                     funcRefNameStream.WriteLine(inputFuncRefNameList[i]);
@@ -66,7 +67,7 @@ namespace UTEST
 
             var obj = new ModulesDependency();
 
-            obj.SetRelation(functionNames, functRefNames, moduleIDs);
+            obj.SetRelationInFile(functionNamesFileName, functRefNamesFileName, moduleIDsFileName, funcRelationsFileName);
 
             Assert.AreEqual(modulIDsList[0].SetEquals(obj.GetTouchedModules(funcNamesList[0])),true);
             Assert.AreEqual(modulIDsList[1].SetEquals(obj.GetTouchedModules(funcNamesList[1])),true);
@@ -93,7 +94,7 @@ namespace UTEST
 
             var obj = new ModulesDependency();
 
-            obj.SetRelation();
+            obj.SetRelationFromFile(funcRelationsFileName);
 
             Assert.AreEqual(modulIDsList[0].SetEquals(obj.GetTouchedModules(funcNamesList[0])),true);
             Assert.AreEqual(modulIDsList[1].SetEquals(obj.GetTouchedModules(funcNamesList[1])),true);
@@ -135,9 +136,9 @@ namespace UTEST
                 "32","32","32"
             };
 
-            using(var funcNameStream = new StreamWriter(functionNames))
-            using(var funcRefNameStream = new StreamWriter(functRefNames))
-            using(var moduleIDStream = new StreamWriter(moduleIDs)){
+            using(var funcNameStream = new StreamWriter(functionNamesFileName))
+            using(var funcRefNameStream = new StreamWriter(functRefNamesFileName))
+            using(var moduleIDStream = new StreamWriter(moduleIDsFileName)){
                 for(int i = 0; i < inputFuncNameList.Count; ++ i){
                     funcNameStream.WriteLine(inputFuncNameList[i]);
                     funcRefNameStream.WriteLine(inputFuncRefNameList[i]);
@@ -158,7 +159,7 @@ namespace UTEST
 
             var obj = new ModulesDependency();
 
-            obj.SetRelation(functionNames, functRefNames, moduleIDs);
+            obj.SetRelationInFile(functionNamesFileName, functRefNamesFileName, moduleIDsFileName,funcRelationsFileName);
 
             Assert.AreEqual(modulIDsList[0].SetEquals(obj.GetTouchedModules(funcNamesList[0])),true);
             Assert.AreEqual(modulIDsList[1].SetEquals(obj.GetTouchedModules(funcNamesList[1])),true);
@@ -185,7 +186,7 @@ namespace UTEST
 
             var obj = new ModulesDependency();
 
-            obj.SetRelation(functionNames, functRefNames, moduleIDs);
+            obj.SetRelationFromFile(funcRelationsFileName);
 
             Assert.AreEqual(modulIDsList[0].SetEquals(obj.GetTouchedModules(funcNamesList[0])),true);
             Assert.AreEqual(modulIDsList[1].SetEquals(obj.GetTouchedModules(funcNamesList[1])),true);

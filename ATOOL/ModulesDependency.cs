@@ -8,51 +8,52 @@ namespace ATOOL
 {
     public class ModulesDependency
     {
-        private readonly string functionListFileName = "func_list";
-        private readonly string functionRelations = "func_relation.json";
+        //private readonly string functionListFileName = "func_list";
+        //private readonly string functionRelations = "func_relation.json";
         private IDictionary<string,Node> functionDependency;
-        private ISet<string> functionNames;
+        //private ISet<string> functionNames;
 
-        public void SetRelation(string parrentFileName, string childFileName, string ModulesIDsFileName){
-            getUniqueFunctionNames(parrentFileName);
+        public void SetRelationInFile(string parrentFileName, string childFileName,
+                                         string modulesIDsFileName, string outputFileName){
+            ISet<string> functionNames = getUniqueFunctionNames(parrentFileName);
             functionDependency = new Dictionary<string,Node>();
             using(var parentFunctionStream = new StreamReader(parrentFileName))
             using(var childeFunctionStream = new StreamReader(childFileName))
-            using(var modulesIDsStream = new StreamReader(ModulesIDsFileName)){
+            using(var modulesIDsStream = new StreamReader(modulesIDsFileName)){
                string parentFunc, childFunc, moduleIDStr;
                while((parentFunc = parentFunctionStream.ReadLine()) != null
-                    && (childFunc = childeFunctionStream.ReadLine()) != null
-                    && (moduleIDStr = modulesIDsStream.ReadLine()) != null){
-                        Node parentNode, childNode;
-                        if(!functionDependency.TryGetValue(parentFunc, out parentNode)){
-                            parentNode = new Node(parentFunc, new HashSet<Node>());
-                            functionDependency.Add(parentFunc, parentNode);
+                && (childFunc = childeFunctionStream.ReadLine()) != null
+                && (moduleIDStr = modulesIDsStream.ReadLine()) != null){
+                    Node parentNode, childNode;
+                    if(!functionDependency.TryGetValue(parentFunc, out parentNode)){
+                        parentNode = new Node(parentFunc, new HashSet<Node>());
+                        functionDependency.Add(parentFunc, parentNode);
+                    }
+                    parentNode.ModuleID = Convert.ToInt32(moduleIDStr);
+                    
+                    if(functionNames.Contains(childFunc)){
+                        if(!functionDependency.TryGetValue(childFunc, out childNode)){
+                            childNode = new Node(childFunc, new HashSet<Node>());
+                            functionDependency.Add(childFunc, childNode);
                         }
-                        parentNode.ModuleID = Convert.ToInt32(moduleIDStr);
-                        
-                        if(functionNames.Contains(childFunc)){
-                            if(!functionDependency.TryGetValue(childFunc, out childNode)){
-                                childNode = new Node(childFunc, new HashSet<Node>());
-                                functionDependency.Add(childFunc, childNode);
-                            }
-                            if(!parentNode.Relatives.Contains(childNode)){
-                                parentNode.Relatives.Add(childNode);
-                            }
+                        if(!parentNode.Relatives.Contains(childNode)){
+                            parentNode.Relatives.Add(childNode);
                         }
                     }
+                }
             }
             foreach(var node in functionDependency.Values){
                 if(node.State == 0){
                     deepFirstSearchTree(null,node);
                 }
             }
-            saveInJsonFormat();
+            saveInJsonFormat(outputFileName);
         }
 
-        public void SetRelation(){
+        public void SetRelationFromFile(string jsonFuncRelationFileName){
             var serializer = new JsonSerializer();
             IList<JsonNode> jsonFunDependency; 
-            using(var funcRelationStream = new StreamReader(functionRelations)){
+            using(var funcRelationStream = new StreamReader(jsonFuncRelationFileName)){
                 jsonFunDependency = (List<JsonNode>) serializer.Deserialize(funcRelationStream,typeof(List<JsonNode>));
             }
 
@@ -70,14 +71,6 @@ namespace ATOOL
                         functionDependency.Add(childFunName,childNode);
                     } 
                     parentNode.Relatives.Add(childNode);
-                }
-
-            }
-
-            functionNames = new HashSet<string>(functionDependency.Keys);
-            using(var uniqueFuncNameStream = new StreamWriter(functionListFileName)){
-                foreach(var val in functionNames){
-                    uniqueFuncNameStream.WriteLine(val);
                 }
             }
         }
@@ -107,10 +100,6 @@ namespace ATOOL
             return null;
         }
 
-        void clearStateOfNodes(){
-
-        }
-
         private void deepFirstSearchTree(Node parentNode, Node node){
             node.State = 1;
             var childSet = node.Relatives;
@@ -126,7 +115,8 @@ namespace ATOOL
                 }
             }
         } 
-        private void getUniqueFunctionNames(string funcNameFileName){
+        private ISet<string> getUniqueFunctionNames(string funcNameFileName){
+            var functionNames = new HashSet<string>();
             using(var funcNameStream = new StreamReader(funcNameFileName)){
                 string funName;
                 functionNames = new HashSet<string>();
@@ -134,17 +124,12 @@ namespace ATOOL
                     functionNames.Add(funName);
                 }
             }
-
-            using(var uniqueFuncNameStream = new StreamWriter(functionListFileName)){
-                foreach(var val in functionNames){
-                    uniqueFuncNameStream.WriteLine(val);
-                }
-            }
+            return functionNames;
         }
 
-        private void saveInJsonFormat(){
+        private void saveInJsonFormat(string funcRelationFileName){
             var serializer = new JsonSerializer();
-            using(var funcRelationStream = new StreamWriter(functionRelations)){
+            using(var funcRelationStream = new StreamWriter(funcRelationFileName)){
                 serializer.Serialize(funcRelationStream, functionDependency.Select(
                 x => new JsonNode{
                     FunctionName = x.Value.FunctionName,
