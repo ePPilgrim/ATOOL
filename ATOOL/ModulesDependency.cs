@@ -93,7 +93,7 @@ namespace ATOOL
                 foreach(var val in node.Relatives){
                     var subset = getTouchedModules(val.FunctionName);
                     if(subset != null) set.UnionWith(subset);
-                    else return null;
+                    //else return null;
                 }
                 return set;
             }

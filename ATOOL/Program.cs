@@ -49,7 +49,12 @@ namespace ATOOL
 
             }
             var fn1 = new FakeNode(){str = "Hellow JSON1111111111!!!", list = new List<int>{1,2,3}};
-            var fn2 = new FakeNode(){str = "Hellow JSON2222222222!!!", list = new List<int>{11,22,33,44}};           
+            var fn2 = new FakeNode(){str = "Hellow JSON2222222222!!!", list = new List<int>{11,22,33,44}};  
+            string str = "[sssss,ddddd,]";
+            str = str.TrimStart('[');
+            str = str.TrimEnd(']');
+            IList<string> nnn =  str.Split(',');
+            int rr = 8;       
         }
     }
 }
