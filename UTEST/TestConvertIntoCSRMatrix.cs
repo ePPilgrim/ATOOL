@@ -9,7 +9,8 @@ namespace UTEST
     public class TestConvertIntoCSRMatrix
     {
         string columnMapFileName = "columnMapNames.txt";
-        string funcRelationsFileName = @"..\..\..\funcRelations.json";
+        string funcRelationsFileName1 = @"..\..\..\funcRelationsTestCase1.json";
+        string funcRelationsFileName2 = @"..\..\..\funcRelationsTestCase2.json";
         string inputCRinfoFileName = "inputCR.txt";
         string csrmatrixFileName = "csrmatrix.csr";
         string crdateFileName = "crdata.txt";
@@ -43,7 +44,7 @@ namespace UTEST
         [TestMethod]
         public void TestSetColumnMap()
         {
-            var CsrMatrixObj = new ConvertIntoCSRMatrix(funcRelationsFileName);
+            var CsrMatrixObj = new ConvertIntoCSRMatrix(funcRelationsFileName1);
             CsrMatrixObj.SetColumnMap(columnMapFileName);
 
             Assert.AreEqual(CsrMatrixObj.ModulePosition(21),0);
@@ -58,15 +59,9 @@ namespace UTEST
             Assert.AreEqual(CsrMatrixObj.DepartmentPosition(983),9);
             Assert.AreEqual(CsrMatrixObj.YearPosition,10); 
         }
-                //new HashSet<int>{11} - 11
-                //new HashSet<int>{12} - 12
-               // new HashSet<int>{11,12,21} - 21
-               // new HashSet<int>{11,22} - 22
-               // new HashSet<int>{11,12,23} - 23
-               // new HashSet<int>{11,12,21,22,23,31} -31
-               // new HashSet<int>{11,12,23,32} - 32
+
         [TestMethod]
-        public void TestCreateCSRMatrix()
+        public void TestCreateCSRMatrix1()
         {
             var masterDim = "3,11";
             var masterRows = "0,8,14,20";
@@ -74,13 +69,12 @@ namespace UTEST
             var masterValues = "1,3,2,1,1,1,1,31,1,2,1,1,1,32,3,1,1,1,1,33";
             var masterCRs = new List<string>{"6111111", "6222222", "6333333"};
 
-            var CsrMatrixObj = new ConvertIntoCSRMatrix(funcRelationsFileName);
+            var CsrMatrixObj = new ConvertIntoCSRMatrix(funcRelationsFileName1);
             CsrMatrixObj.SetColumnMap(columnMapFileName);
             CsrMatrixObj.CreateCSRMatrix(inputCRinfoFileName,crdateFileName,csrmatrixFileName);
 
             using(var csrMatrixStream = new StreamReader(csrmatrixFileName)){
                 Assert.AreEqual(csrMatrixStream.ReadLine().Equals(masterDim),true);
-                var tt5 = csrMatrixStream.ReadLine();
                 Assert.AreEqual(csrMatrixStream.ReadLine().Equals(masterRows),true);
                 Assert.AreEqual(csrMatrixStream.ReadLine().Equals(masterColumns),true);
                 Assert.AreEqual(csrMatrixStream.ReadLine().Equals(masterValues),true);
@@ -91,9 +85,6 @@ namespace UTEST
                 Assert.AreEqual(crDataStream.ReadLine().Equals(masterCRs[1]),true);
                 Assert.AreEqual(crDataStream.ReadLine().Equals(masterCRs[2]),true);
             }
-          
-        }
-
-        
+        } 
     }
 }

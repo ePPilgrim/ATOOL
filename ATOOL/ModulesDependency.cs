@@ -23,18 +23,18 @@ namespace ATOOL
                 && (moduleIDStr = modulesIDsStream.ReadLine()) != null){
                     Node parentNode, childNode;
                     if(!functionDependency.TryGetValue(parentFunc, out parentNode)){
-                        parentNode = new Node(parentFunc, new HashSet<Node>());
+                        parentNode = new Node(parentFunc, new HashSet<string>());
                         functionDependency.Add(parentFunc, parentNode);
                     }
                     parentNode.ModuleID = Convert.ToInt32(moduleIDStr);
                     
                     if(functionNames.Contains(childFunc)){
                         if(!functionDependency.TryGetValue(childFunc, out childNode)){
-                            childNode = new Node(childFunc, new HashSet<Node>());
+                            childNode = new Node(childFunc, new HashSet<string>());
                             functionDependency.Add(childFunc, childNode);
                         }
-                        if(!parentNode.Relatives.Contains(childNode)){
-                            parentNode.Relatives.Add(childNode);
+                        if(!parentNode.Relatives.Contains(childNode.FunctionName)){
+                            parentNode.Relatives.Add(childNode.FunctionName);
                         }
                     }
                 }
@@ -58,16 +58,16 @@ namespace ATOOL
             Node parentNode, childNode;      
             foreach(var val in jsonFunDependency){
                 if(!functionDependency.TryGetValue(val.FunctionName, out parentNode)){
-                    parentNode = new Node(val.FunctionName, new List<Node>(val.Relatives.Count));
+                    parentNode = new Node(val.FunctionName, new List<string>(val.Relatives.Count));
                     functionDependency.Add(val.FunctionName,parentNode);
                 }
                 parentNode.ModuleID = val.ModuleID;
                 foreach(var childFunName in val.Relatives){
                     if(!functionDependency.TryGetValue(childFunName, out childNode)){
-                        childNode = new Node(childFunName, new List<Node>(32));
+                        childNode = new Node(childFunName, new List<string>(32));
                         functionDependency.Add(childFunName,childNode);
                     } 
-                    parentNode.Relatives.Add(childNode);
+                    parentNode.Relatives.Add(childNode.FunctionName);
                 }
             }
         }
@@ -88,7 +88,7 @@ namespace ATOOL
                 node.State = 1;
                 set.Add((int)node.ModuleID);
                 foreach(var val in node.Relatives){
-                    var subset = getTouchedModules(val.FunctionName);
+                    var subset = getTouchedModules(functionDependency[val].FunctionName);
                     if(subset != null) set.UnionWith(subset);
                     //else return null;
                 }
@@ -100,15 +100,15 @@ namespace ATOOL
         private void deepFirstSearchTree(Node parentNode, Node node){
             node.State = 1;
             var childSet = node.Relatives;
-            node.Relatives = new List<Node>(128);
+            node.Relatives = new List<string>(128);
             if(parentNode != null){
-                node.Relatives.Add(parentNode);
+                node.Relatives.Add(parentNode.FunctionName);
             }
             foreach(var val in childSet){
-                if(val.State != 0){
-                    val.Relatives.Add(node);
+                if(functionDependency[val].State != 0){
+                    functionDependency[val].Relatives.Add(node.FunctionName);
                 } else{
-                    deepFirstSearchTree(node, val);
+                    deepFirstSearchTree(node, functionDependency[val]);
                 }
             }
         } 
@@ -131,7 +131,7 @@ namespace ATOOL
                 x => new JsonNode{
                     FunctionName = x.Value.FunctionName,
                     ModuleID = x.Value.ModuleID,
-                    Relatives = x.Value.Relatives.Select(y=>y.FunctionName).ToList()
+                    Relatives = x.Value.Relatives.ToList()
                 }
                 ).ToList());
             } 
@@ -141,9 +141,9 @@ namespace ATOOL
            public string FunctionName;
            public int? ModuleID = null;
            public int State = 0;
-           public ICollection<Node> Relatives; 
+           public ICollection<string> Relatives; 
 
-           public Node(string functionName, ICollection<Node> relatives){
+           public Node(string functionName, ICollection<string> relatives){
                FunctionName = functionName;
                Relatives = relatives;
            }

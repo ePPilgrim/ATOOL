@@ -45,7 +45,7 @@ namespace ATOOL
             using(var outputCRStream = new StreamWriter(outputCRsFileName))
             {
                 string str;
-                int nextRowIndex = 1;
+                int nextRowIndex = 0;
                 while(!String.IsNullOrEmpty(str = crInfoStream.ReadLine())){
                     str = str.Trim();
                     var list = str.Split(';');
@@ -78,7 +78,7 @@ namespace ATOOL
         IDictionary<int,int> getModuleIdsHistogram(string functs){
             functs = functs.TrimStart('[');
             functs = functs.TrimEnd(']');
-            var hist = new Dictionary<int,int>();
+            var hist = new SortedDictionary<int,int>();
             foreach(var fun in functs.Split(',')){
                 var h = funcRelations.GetTouchedModules(fun);
                 foreach(var id in funcRelations.GetTouchedModules(fun)){
@@ -91,8 +91,5 @@ namespace ATOOL
             }
             return hist;
         }
-
-
-
     }
 }
