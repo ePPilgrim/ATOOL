@@ -54,7 +54,11 @@ namespace ATOOL
             str = str.TrimStart('[');
             str = str.TrimEnd(']');
             IList<string> nnn =  str.Split(',');
-            int rr = 8;       
+            int rr = 8; 
+
+            var tR = new Dictionary<int,int>();
+            tR.Add(1,22222);
+            Console.WriteLine($"{tR[1]}");      
         }
     }
 }

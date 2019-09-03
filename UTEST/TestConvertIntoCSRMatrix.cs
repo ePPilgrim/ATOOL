@@ -76,6 +76,7 @@ namespace UTEST
             var masterValues = "1,3,2,1,1,1,1,31,1,2,1,1,1,32,3,1,1,1,1,33";
             var masterCRs = new List<string>{"6111111", "6222222", "6333333"};
 
+            CsrMatrixObj.SetColumnMap(columnMapFileName);
             CsrMatrixObj.CreateCSRMatrix(inputCRinfoFileName,csrmatrixFileName,crdateFileName);
 
             using(var csrMatrixStream = new StreamReader(csrmatrixFileName)){
