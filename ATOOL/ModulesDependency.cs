@@ -8,10 +8,7 @@ namespace ATOOL
 {
     public class ModulesDependency
     {
-        //private readonly string functionListFileName = "func_list";
-        //private readonly string functionRelations = "func_relation.json";
         private IDictionary<string,Node> functionDependency;
-        //private ISet<string> functionNames;
 
         public void SetRelationInFile(string parrentFileName, string childFileName,
                                          string modulesIDsFileName, string outputFileName){

@@ -14,11 +14,8 @@ namespace UTEST
         string csrmatrixFileName = "csrmatrix.csr";
         string crdateFileName = "crdata.txt";
 
-        ConvertIntoCSRMatrix CsrMatrixObj = null;
-
 
         public TestConvertIntoCSRMatrix(){
-            CsrMatrixObj = new ConvertIntoCSRMatrix(funcRelationsFileName);
             var input = new List<string>{
                 "21","11","22","12","31","23","32","EndOfModuleID",
                 "345", "412","0983","EndOfDepID",
@@ -34,7 +31,7 @@ namespace UTEST
             var inputCRinfo = new List<string>{
                 "6111111;20190101;[f11,f31,f22];983;31",
                 "6222222;20190202;[f12,f32];345;32",
-                "6333333;20190303;[f11;f23;f22];412;33"
+                "6333333;20190303;[f11,f23,f22];412;33"
             };
             using(var CRinfoStream = new StreamWriter(inputCRinfoFileName)){
                 for(int i = 0; i < inputCRinfo.Count; ++ i){
@@ -46,6 +43,7 @@ namespace UTEST
         [TestMethod]
         public void TestSetColumnMap()
         {
+            var CsrMatrixObj = new ConvertIntoCSRMatrix(funcRelationsFileName);
             CsrMatrixObj.SetColumnMap(columnMapFileName);
 
             Assert.AreEqual(CsrMatrixObj.ModulePosition(21),0);
@@ -70,17 +68,19 @@ namespace UTEST
         [TestMethod]
         public void TestCreateCSRMatrix()
         {
-            var masterDim = "3,10";
+            var masterDim = "3,11";
             var masterRows = "0,8,14,20";
             var masterColumns = "0,1,2,3,4,5,9,10,1,3,5,6,7,10,1,2,3,5,8,10";
             var masterValues = "1,3,2,1,1,1,1,31,1,2,1,1,1,32,3,1,1,1,1,33";
             var masterCRs = new List<string>{"6111111", "6222222", "6333333"};
 
+            var CsrMatrixObj = new ConvertIntoCSRMatrix(funcRelationsFileName);
             CsrMatrixObj.SetColumnMap(columnMapFileName);
-            CsrMatrixObj.CreateCSRMatrix(inputCRinfoFileName,csrmatrixFileName,crdateFileName);
+            CsrMatrixObj.CreateCSRMatrix(inputCRinfoFileName,crdateFileName,csrmatrixFileName);
 
             using(var csrMatrixStream = new StreamReader(csrmatrixFileName)){
                 Assert.AreEqual(csrMatrixStream.ReadLine().Equals(masterDim),true);
+                var tt5 = csrMatrixStream.ReadLine();
                 Assert.AreEqual(csrMatrixStream.ReadLine().Equals(masterRows),true);
                 Assert.AreEqual(csrMatrixStream.ReadLine().Equals(masterColumns),true);
                 Assert.AreEqual(csrMatrixStream.ReadLine().Equals(masterValues),true);

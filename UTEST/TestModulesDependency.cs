@@ -95,13 +95,19 @@ namespace UTEST
             var obj = new ModulesDependency();
 
             obj.SetRelationFromFile(funcRelationsFileName);
-
+            var x1 = obj.GetTouchedModules(funcNamesList[0]);
             Assert.AreEqual(modulIDsList[0].SetEquals(obj.GetTouchedModules(funcNamesList[0])),true);
+             x1 = obj.GetTouchedModules(funcNamesList[1]);
             Assert.AreEqual(modulIDsList[1].SetEquals(obj.GetTouchedModules(funcNamesList[1])),true);
+             x1 = obj.GetTouchedModules(funcNamesList[2]);
             Assert.AreEqual(modulIDsList[2].SetEquals(obj.GetTouchedModules(funcNamesList[2])),true);
+             x1 = obj.GetTouchedModules(funcNamesList[3]);
             Assert.AreEqual(modulIDsList[3].SetEquals(obj.GetTouchedModules(funcNamesList[3])),true);
+             x1 = obj.GetTouchedModules(funcNamesList[4]);
             Assert.AreEqual(modulIDsList[4].SetEquals(obj.GetTouchedModules(funcNamesList[4])),true);
+             x1 = obj.GetTouchedModules(funcNamesList[5]);
             Assert.AreEqual(modulIDsList[5].SetEquals(obj.GetTouchedModules(funcNamesList[5])),true);
+             x1 = obj.GetTouchedModules(funcNamesList[6]);
             Assert.AreEqual(modulIDsList[6].SetEquals(obj.GetTouchedModules(funcNamesList[6])),true);    
         }
 

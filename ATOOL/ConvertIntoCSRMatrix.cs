@@ -37,17 +37,19 @@ namespace ATOOL
         }
 
         public void CreateCSRMatrix(string crInfoFileName, string outputCRsFileName, string outputCSRMatrixFileName){
-            var crs = new List<string>(16000);
             var rows = "0";
             var columns = "";
             var values = "";
+            int rowCnt = 0;
             using(var crInfoStream = new StreamReader(crInfoFileName))
+            using(var outputCRStream = new StreamWriter(outputCRsFileName))
             {
                 string str;
                 int nextRowIndex = 1;
-                while(!String.IsNullOrEmpty(str = crInfoStream.ReadLine().Trim())){
+                while(!String.IsNullOrEmpty(str = crInfoStream.ReadLine())){
+                    str = str.Trim();
                     var list = str.Split(';');
-                    crs.Add(list[0]); // just number of CR
+                    outputCRStream.WriteLine(list[0]); // just number of CR
                     var moduleIdHist = getModuleIdsHistogram(list[2]); // index 1 is for data
                     foreach(var key in moduleIdHist.Keys){ //key is index
                         columns += $",{key}";
@@ -58,12 +60,19 @@ namespace ATOOL
                     columns += $",{depPosition},{YearPosition}";
                     values += $",1,{list[4].Trim()}";
                     nextRowIndex += 2;
-                    rows += $"{nextRowIndex}";
+                    rows += $",{nextRowIndex}";
+                    rowCnt ++;
                 }
-
+                columns = columns.TrimStart(',');
+                values = values.TrimStart(',');
             }
-             //using(var outputCRStream = new StreamWriter(outputCRsFileName))
-            //using(var outputCSRMatrixStream = new StreamWriter(outputCSRMatrixFileName))
+            
+            using(var outputCSRMatrixStream = new StreamWriter(outputCSRMatrixFileName)){
+                outputCSRMatrixStream.WriteLine($"{rowCnt},{YearPosition + 1}");
+                outputCSRMatrixStream.WriteLine(rows);
+                outputCSRMatrixStream.WriteLine(columns);
+                outputCSRMatrixStream.WriteLine(values);
+            }
         }
 
         IDictionary<int,int> getModuleIdsHistogram(string functs){
@@ -71,6 +80,7 @@ namespace ATOOL
             functs = functs.TrimEnd(']');
             var hist = new Dictionary<int,int>();
             foreach(var fun in functs.Split(',')){
+                var h = funcRelations.GetTouchedModules(fun);
                 foreach(var id in funcRelations.GetTouchedModules(fun)){
                     var pos = ModulePosition(id);
                     if(hist.ContainsKey(pos)) hist[pos] ++;
