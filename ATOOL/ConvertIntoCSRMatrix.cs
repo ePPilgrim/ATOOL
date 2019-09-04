@@ -49,8 +49,9 @@ namespace ATOOL
                 while(!String.IsNullOrEmpty(str = crInfoStream.ReadLine())){
                     str = str.Trim();
                     var list = str.Split(';');
-                    outputCRStream.WriteLine(list[0]); // just number of CR
                     var moduleIdHist = getModuleIdsHistogram(list[2]); // index 1 is for data
+                    if(moduleIdHist.Count == 0) continue;
+                    outputCRStream.WriteLine(list[0]); // just number of CR
                     foreach(var key in moduleIdHist.Keys){ //key is index
                         columns += $",{key}";
                         values += $",{moduleIdHist[key]}";
@@ -62,17 +63,19 @@ namespace ATOOL
                     nextRowIndex += 2;
                     rows += $",{nextRowIndex}";
                     rowCnt ++;
+                    Console.Write($"{rowCnt},");
                 }
                 columns = columns.TrimStart(',');
                 values = values.TrimStart(',');
             }
-            
+            Console.WriteLine("End of CSR creation!!!!");
             using(var outputCSRMatrixStream = new StreamWriter(outputCSRMatrixFileName)){
                 outputCSRMatrixStream.WriteLine($"{rowCnt},{YearPosition + 1}");
                 outputCSRMatrixStream.WriteLine(rows);
                 outputCSRMatrixStream.WriteLine(columns);
                 outputCSRMatrixStream.WriteLine(values);
             }
+            Console.WriteLine("File with some csr matrix is created!!!!");
         }
 
         IDictionary<int,int> getModuleIdsHistogram(string functs){
@@ -81,12 +84,14 @@ namespace ATOOL
             var hist = new SortedDictionary<int,int>();
             foreach(var fun in functs.Split(',')){
                 var h = funcRelations.GetTouchedModules(fun);
-                foreach(var id in funcRelations.GetTouchedModules(fun)){
+                if(h != null){
+                foreach(var id in h){
                     var pos = ModulePosition(id);
                     if(hist.ContainsKey(pos)) hist[pos] ++;
                     else{
                         hist.Add(pos,1);
                     }
+                }
                 }
             }
             return hist;

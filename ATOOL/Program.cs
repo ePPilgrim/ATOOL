@@ -8,17 +8,6 @@ namespace ATOOL
 {
     class Program
     {
-            public class FakeNode : IComparable
-            {
-                public string str = null;
-
-                public List<int> list;
-
-            int IComparable.CompareTo(object obj)
-            {
-                return this.GetHashCode().CompareTo(obj.GetHashCode());
-            }
-        }
         static void Main(string[] args)
         {
             if(args.Length != 0){
@@ -37,7 +26,10 @@ namespace ATOOL
                         funcRelations.SetRelationInFile(args[1], args[2], args[3], args[4]);
                     }
 
-                } else if(args[1] == "add_samples_in_csr_matrix"){
+                } else if(args[0] == "csr"){
+                    var csr = new ConvertIntoCSRMatrix(args[1]);
+                    csr.SetColumnMap(args[2]);
+                    csr.CreateCSRMatrix(args[3], args[4], args[5]);
 
                 } else{
                    Console.WriteLine("Only two commands are expected:");
@@ -48,7 +40,10 @@ namespace ATOOL
                 }
 
             }
-            var fn1 = new FakeNode(){str = "Hellow JSON1111111111!!!", list = new List<int>{1,2,3}};
+            var csr1 = new ConvertIntoCSRMatrix("func.json");
+            csr1.SetColumnMap("columns");
+            csr1.CreateCSRMatrix("cr", "crlist", "csr_matrix");
+/*             var fn1 = new FakeNode(){str = "Hellow JSON1111111111!!!", list = new List<int>{1,2,3}};
             var fn2 = new FakeNode(){str = "Hellow JSON2222222222!!!", list = new List<int>{11,22,33,44}};  
             string str = "[sssss,ddddd,]";
             str = str.TrimStart('[');
@@ -58,7 +53,7 @@ namespace ATOOL
 
             var tR = new Dictionary<int,int>();
             tR.Add(1,22222);
-            Console.WriteLine($"{tR[1]}");      
+            Console.WriteLine($"{tR[1]}");    */   
         }
     }
 }
